@@ -94,7 +94,7 @@ char* next_string(FILE* json) {
 
 double next_number(FILE* json) {
   double value;
-  fscanf(json, "%f", &value);
+  fscanf(json, "%lf", &value);
   // Error check this..
   return value;
 }
@@ -119,7 +119,7 @@ double* next_vector(FILE* json) {
 
 
 void read_scene(char* filename) {
-  int index = -1;
+  int index = -2;
 
 
   int c;
@@ -140,6 +140,7 @@ void read_scene(char* filename) {
   // Find the objects
 
   while (1) {
+        index++;
     c = fgetc(json);
     if (c == ']') {
       fprintf(stderr, "Error: This is the worst scene file EVER.\n");
@@ -168,9 +169,9 @@ void read_scene(char* filename) {
 
       if (strcmp(value, "camera") == 0) {
       } else if (strcmp(value, "sphere") == 0) {
-          scene.object[index].type = value;
+          scene.object[index].type = "sphere\0";
       } else if (strcmp(value, "plane") == 0) {
-          scene.object[index].type = value;
+          scene.object[index].type = "plane\0";
       } else {
 	fprintf(stderr, "Error: Unknown type, \"%s\", on line number %d.\n", value, line);
 	exit(1);
@@ -192,15 +193,14 @@ void read_scene(char* filename) {
 	  expect_c(json, ':');
 	  skip_ws(json);
 
-        if ((strcmp(key, "width") == 0)) {
+        if (strcmp(key, "width") == 0) {
             scene.width = next_number(json);
         } else if (strcmp(key, "height") == 0){
             scene.height = next_number(json);
-        } else if (strcmp(key, "radius") == 0) {
+        } else if (strcmp(key, "radius") == 0){
             scene.object[index].radius = next_number(json);
         } else if ((strcmp(key, "color") == 0)){
             scene.object[index].color = next_vector(json);
-            printf("object %d color: %f %f %f \n", index, scene.object[index].color[0],scene.object[index].color[1],scene.object[index].color[2]);
         } else if (strcmp(key, "position") == 0){
             scene.object[index].position = next_vector(json);
         } else if (strcmp(key, "normal") == 0) {
@@ -229,7 +229,6 @@ void read_scene(char* filename) {
 	exit(1);
       }
     }
-    index++;
   }
 }
 
@@ -245,7 +244,7 @@ void printScene(){
     printf("normal: %f %f %f\n", scene.object[index].normal[0],scene.object[index].normal[1],scene.object[index].normal[2]);
     }
     else{
-    printf("type %f\n", scene.object[index].radius);
+    printf("radius: %f\n", scene.object[index].radius);
     }
 
 
@@ -260,3 +259,4 @@ int main(int c, char** argv) {
   printScene();
   return 0;
 }
+
