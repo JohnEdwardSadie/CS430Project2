@@ -3,12 +3,19 @@
 #include <string.h>
 
 typedef struct{
+    char *type;
+    char *position;
+    double *color;
+    double *radius;
+    double *normal
 
 
 
 }Object;
 
 typedef struct{
+    double width, height;
+    Object object[120];
 
 
 }Scene;
