@@ -1,24 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 typedef struct{
     char *type;
-    char *position;
+    double *position;
     double *color;
-    double *radius;
-    double *normal
-
-
+    double radius;
+    double *normal;
 
 }Object;
 
 typedef struct{
     double width, height;
-    Object object[120];
-
+    Object object[128];
 
 }Scene;
+
+Scene scene;
 
 int line = 1;
 
@@ -119,6 +119,9 @@ double* next_vector(FILE* json) {
 
 
 void read_scene(char* filename) {
+  int index = -1;
+
+
   int c;
   FILE* json = fopen(filename, "r");
 
@@ -161,9 +164,13 @@ void read_scene(char* filename) {
 
       char* value = next_string(json);
 
+
+
       if (strcmp(value, "camera") == 0) {
       } else if (strcmp(value, "sphere") == 0) {
+          scene.object[index].type = value;
       } else if (strcmp(value, "plane") == 0) {
+          scene.object[index].type = value;
       } else {
 	fprintf(stderr, "Error: Unknown type, \"%s\", on line number %d.\n", value, line);
 	exit(1);
@@ -184,16 +191,22 @@ void read_scene(char* filename) {
 	  skip_ws(json);
 	  expect_c(json, ':');
 	  skip_ws(json);
-	  if ((strcmp(key, "width") == 0) ||
-	      (strcmp(key, "height") == 0) ||
-	      (strcmp(key, "radius") == 0)) {
-	    double value = next_number(json);
-	  } else if ((strcmp(key, "color") == 0) ||
-		     (strcmp(key, "position") == 0) ||
-		     (strcmp(key, "normal") == 0)) {
-	    double* value = next_vector(json);
-	  } else {
-	    fprintf(stderr, "Error: Unknown property, \"%s\", on line %d.\n",
+
+        if ((strcmp(key, "width") == 0)) {
+            scene.width = next_number(json);
+        } else if (strcmp(key, "height") == 0){
+            scene.height = next_number(json);
+        } else if (strcmp(key, "radius") == 0) {
+            scene.object[index].radius = next_number(json);
+        } else if ((strcmp(key, "color") == 0)){
+            scene.object[index].color = next_vector(json);
+            printf("object %d color: %f %f %f \n", index, scene.object[index].color[0],scene.object[index].color[1],scene.object[index].color[2]);
+        } else if (strcmp(key, "position") == 0){
+            scene.object[index].position = next_vector(json);
+        } else if (strcmp(key, "normal") == 0) {
+            scene.object[index].normal = next_vector(json);
+        } else {
+            fprintf(stderr, "Error: Unknown property, \"%s\", on line %d.\n",
 		    key, line);
 	    //char* value = next_string(json);
 	  }
@@ -216,10 +229,34 @@ void read_scene(char* filename) {
 	exit(1);
       }
     }
+    index++;
   }
 }
 
+void printScene(){
+    int index = 0;
+    while(scene.object[index].color != NULL){
+
+    printf("object: %d\n", index);
+    printf("type %s\n", scene.object[index].type);
+    printf("color: %f %f %f\n", scene.object[index].color[0],scene.object[index].color[1],scene.object[index].color[2]);
+    printf("position: %f %f %f\n", scene.object[index].position[0],scene.object[index].position[1],scene.object[index].position[2]);
+    if(scene.object[index].normal != NULL){
+    printf("normal: %f %f %f\n", scene.object[index].normal[0],scene.object[index].normal[1],scene.object[index].normal[2]);
+    }
+    else{
+    printf("type %f\n", scene.object[index].radius);
+    }
+
+
+
+    index++;
+    }
+
+}
+
 int main(int c, char** argv) {
-  read_scene(argv[1]);
+  read_scene("objects.json");
+  printScene();
   return 0;
 }
