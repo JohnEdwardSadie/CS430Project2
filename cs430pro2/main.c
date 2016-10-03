@@ -4,6 +4,12 @@
 #include <math.h>
 
 typedef struct{
+    unsigned char r,g,b;
+
+
+}Pixel;
+
+typedef struct{
     char *type;
     double *position;
     double *color;
@@ -19,26 +25,87 @@ typedef struct{
 }Scene;
 
 Scene scene;
+Pixel *PixelBuffer;
 
 
 int line = 1;
 
+//creating a square operator
 static inline double sqr(double n){
     return n*n;
 }
 
+//Sphere intersection
 double sphereIntersection(double *Ro, double *Rd, double *position, double radius){
     double a,b,c;
+    //sphere intersection equation provided by Dr. Palmer
     a = sqr(Rd[0]) + sqr(Rd[1]) + sqr(Rd[2]);
     b = 2*(Rd[0]*(Ro[0]-position[0])+ Rd[0]*(Ro[1]-position[1])+Rd[2]*(Ro[2]-position[2]));
-    c = sqr(Ro[0]-position[0]) + sqr(Ro[1]-position[1]) + sqr(Ro[2]-position[2]) - sqrt(radius);
+    c = sqr(Ro[0]-position[0]) + sqr(Ro[1]-position[1]) + sqr(Ro[2]-position[2]) - sqr(radius);
 
     double t0, t1;
 
     t0 = (-b - sqrt(sqr(b) - 4*(a*c)))/2*a;
     t1 = (-b + sqrt(sqr(b) - 4*(a*c)))/2*a;
 
+    //discriminant
+    double dis = sqr(b) - 4*(a*c);
+
+    //Checking if the discriminant is 0
+    //If so, there was no intersection
+    if(dis = 0){
+        return -1;
+    }
+    //The intersection is behind the camera
+    //Don't render
+    if(t0 < 0){
+        return t1;
+    }
+    //Render the object
+    return t0;
+
 }
+
+static inline double normalize(double *v){
+    //getting the length of the vector
+    double length = sqrt(sqr(v[0]) + sqr(v[1]) + sqr(v[2]));
+
+    //normalizing our vector
+    //turning it into a unit vector
+    v[0] = v[0]/length;
+    v[1] = v[1]/length;
+    v[2] = v[2]/length;
+
+}
+
+double planeIntersection(double *Ro, double *Rd, double *position, double *normal){
+    normalize(normal);
+
+    //The length from camera to plane
+    double d = -(normal[0]*position[0] + normal[1]*position[1] + normal[2]*position[2]);
+
+    //denominator
+    double denominator = (normal[0]*Rd[0] + normal[1]*Rd[1] + normal[2]*Rd[2]);
+    if(denominator == 0)
+        return -1;
+    //plane intersection equation provided by Dr. Palmer
+    double t = -(normal[0]*Ro[0] + normal[1]*Ro[1] + normal[2]*Ro[2] + d)/(normal[1]*Rd[0] + normal[1]*Rd[1] + normal[2]*Rd[2]);
+    //else
+        return t;
+
+
+
+}
+
+void rayCast(double M, double N){
+    double *Ro = {0,0,0};
+    double *Rd = {0,0,0};
+
+
+
+
+}
+
 
 // next_c() wraps the getc() function and provides error checking and line
 // number maintenance
