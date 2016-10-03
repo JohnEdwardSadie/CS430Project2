@@ -1,7 +1,15 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+
+
+int main(int c, char** argv) {
+  read_scene("objects.json");
+  printScene();
+  return 0;
+}
 
 typedef struct{
     char *type;
@@ -20,25 +28,7 @@ typedef struct{
 
 Scene scene;
 
-
 int line = 1;
-
-static inline double sqr(double n){
-    return n*n;
-}
-
-double sphereIntersection(double *Ro, double *Rd, double *position, double radius){
-    double a,b,c;
-    a = sqr(Rd[0]) + sqr(Rd[1]) + sqr(Rd[2]);
-    b = 2*(Rd[0]*(Ro[0]-position[0])+ Rd[0]*(Ro[1]-position[1])+Rd[2]*(Ro[2]-position[2]));
-    c = sqr(Ro[0]-position[0]) + sqr(Ro[1]-position[1]) + sqr(Ro[2]-position[2]) - sqrt(radius);
-
-    double t0, t1;
-
-    t0 = (-b - sqrt(sqr(b) - 4*(a*c)))/2*a;
-    t1 = (-b + sqrt(sqr(b) - 4*(a*c)))/2*a;
-
-}
 
 // next_c() wraps the getc() function and provides error checking and line
 // number maintenance
@@ -136,10 +126,9 @@ double* next_vector(FILE* json) {
 }
 
 
+
 void read_scene(char* filename) {
-  int index = -1;
-
-
+    int index = -1;
   int c;
   FILE* json = fopen(filename, "r");
 
@@ -158,9 +147,6 @@ void read_scene(char* filename) {
   // Find the objects
 
   while (1) {
-
-    //
-    index++;
     c = fgetc(json);
     if (c == ']') {
       fprintf(stderr, "Error: This is the worst scene file EVER.\n");
@@ -185,15 +171,13 @@ void read_scene(char* filename) {
 
       char* value = next_string(json);
 
-
-
       if (strcmp(value, "camera") == 0) {
-            //assuming camera is not first in the array
-          index--;
       } else if (strcmp(value, "sphere") == 0) {
-          scene.object[index].type = "sphere";
+          scene.object[index].type = value;
+
       } else if (strcmp(value, "plane") == 0) {
-          scene.object[index].type = "plane";
+          scene.object[index].type = value;
+
       } else {
 	fprintf(stderr, "Error: Unknown type, \"%s\", on line number %d.\n", value, line);
 	exit(1);
@@ -214,21 +198,26 @@ void read_scene(char* filename) {
 	  skip_ws(json);
 	  expect_c(json, ':');
 	  skip_ws(json);
-        //populating object array with our json contents
-        if (strcmp(key, "width") == 0) {
-            scene.width = next_number(json);
-        } else if (strcmp(key, "height") == 0){
-            scene.height = next_number(json);
-        } else if (strcmp(key, "radius") == 0){
-            scene.object[index].radius = next_number(json);
-        } else if ((strcmp(key, "color") == 0)){
-            scene.object[index].color = next_vector(json);
-        } else if (strcmp(key, "position") == 0){
-            scene.object[index].position = next_vector(json);
-        } else if (strcmp(key, "normal") == 0) {
-            scene.object[index].normal = next_vector(json);
-        } else {
-            fprintf(stderr, "Error: Unknown property, \"%s\", on line %d.\n",
+	  if (strcmp(key, "width") == 0){
+        scene.width = next_number(json);
+
+	  }
+      else if(strcmp(key, "height") == 0) {
+        scene.height = next_number(json);
+      }
+      else if(strcmp(key, "radius") == 0) {
+	    scene.object[index].radius = next_number(json);
+	  }
+	  else if (strcmp(key, "color") == 0) {
+        scene.object[index].color = next_vector(json);
+	  }
+	  else if (strcmp(key, "position") == 0){
+        scene.object[index].position = next_vector(json);
+	  }
+      else if(strcmp(key, "normal") == 0) {
+	    scene.object[index].normal = next_vector(json);
+	  } else {
+	    fprintf(stderr, "Error: Unknown property, \"%s\", on line %d.\n",
 		    key, line);
 	    //char* value = next_string(json);
 	  }
@@ -251,6 +240,7 @@ void read_scene(char* filename) {
 	exit(1);
       }
     }
+    index++;
   }
 }
 
@@ -266,16 +256,12 @@ void printScene(){
     printf("normal: %f %f %f\n", scene.object[index].normal[0],scene.object[index].normal[1],scene.object[index].normal[2]);
     }
     else{
-    printf("radius: %f\n", scene.object[index].radius);
+    printf("type %f\n", scene.object[index].radius);
     }
+
+
+
     index++;
     }
 
 }
-
-int main(int c, char** argv) {
-  read_scene("objects.json");
-  printScene();
-  return 0;
-}
-
