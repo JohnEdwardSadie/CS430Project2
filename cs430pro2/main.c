@@ -131,12 +131,53 @@ void rayCast(double N, double M){
                if(scene[index].type == 'p'){
                        t = planeIntersection(Ro, Rd, scene[index].position, scene[index].normal);
                }
-           }
+               if(t > 0 && t < closestT){
+                   closestT = t;
+
+                   closestC = scene[index].color;
+               }
+               if(closestT > 0 && closestT != 999999){
+
+                   double r = closestC[0] * 255;
+                   double g = closestC[1] * 255;
+                   double b = closestC[2] * 255;
+                   //Type casting
+                   int int_r = (int) r;
+                   int int_g = (int) g;
+                   int int_b = (int) b;
+
+                   int position = (int)((M - i - 1)*N + j);
+
+                   PixelBuffer[position].r = int_r;
+                   PixelBuffer[position].g = int_g;
+                   PixelBuffer[position].b = int_b;
+
+                   /*First attempt*/
+                   /*for(index = 0; index <= scene.object[index]; index += sizeof(Object)){
+       double t = 0;
+       //Shoot function
+       if(scene.object[index].type = "sphere"){
+         t = sphereIntersection(Ro, Rd, scene[index].position, scene[index].radius);
        }
-    }
+       //Shoot function
+       if(scene.object[index].type = "plane"){
+         t = planeIntersection(Ro, Rd, scene[index].position, scene[index].radius);
+
+       }
+        if(t > 0 && t < closestT){
+                   closestT = t;
+
+                   colorT = scene[index].color;
+
+               }*/
 
 
+       }
+   }
+       }
 }
+
+
 
 
 // next_c() wraps the getc() function and provides error checking and line
@@ -440,6 +481,11 @@ void printScene(){
 
 int main(int argc, char** argv) {
 
+    //ascii to integer.
+    double N = (double)atoi(argv[1]);
+    double M = (double)atoi(argv[2]);
 
+    read_scene(argv[3]);
+    rayCast(N, M);
     return 0;
 }
