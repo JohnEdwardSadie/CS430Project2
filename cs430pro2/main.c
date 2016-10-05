@@ -102,9 +102,19 @@ double planeIntersection(double *Ro, double *Rd, double *position, double *norma
 }
 
 void rayCast(double N, double M){
+	int index;
+	int x = 0;
+	int y = 0;
 
+    double Ro[3] = {0,0,0}
 
-
+   	//M = width in pixels
+	//N = height in pixels
+	double c[3] = {0,0,0};
+	double w = scene.width;
+	double h = scene.height;
+	double pixelHeight = h/M;
+	double pixelWidth = w/N;
 
 }
 
