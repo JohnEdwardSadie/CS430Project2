@@ -109,6 +109,32 @@ void rayCast(double N, double M){
     double pixelHeight = h/M;
     double pixelWidth = w/N;
 
+    for(i=0; i<M; i+=1){
+       for(j=0; j<N; j+=1){
+           double p_y = (c[1] - h/2.0 + pixelHeight*(i + 0.5));
+           double p_x = (c[0] - w/2.0 + pixelWidth*(j + 0.5));
+           double p_z = 1; //
+           double Rd[3] = {p_x, p_y, p_z};
+           //Normalization of Rd
+           normalize(Rd);
+
+
+           double closestT = 999999; //closest point to the camera
+           double *closestC; //what ever colro closestT is, that is colorT
+           for(index=0; index<=lastIndex; index+=sizeof(Scene)){
+               double t = 0;
+               //Shoot function from the pseudocode provided by Palmer
+               if(scene[index].type == 's'){
+                       t = sphereIntersection(Ro, Rd, scene[index].position, scene[index].radius);
+               }
+                //Shoot function from the pseudocode provided by Palmer
+               if(scene[index].type == 'p'){
+                       t = planeIntersection(Ro, Rd, scene[index].position, scene[index].normal);
+               }
+           }
+       }
+    }
+
 
 }
 
