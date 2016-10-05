@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="100 100 objects.json raycast.ppm" />
+				<Option parameters="300 300 objects.json output.ppm" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
