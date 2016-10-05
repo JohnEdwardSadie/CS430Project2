@@ -8,6 +8,14 @@
 //CS430 Computer Graphics
 //Project 2 - Basic Raycaster
 
+/*
+In this project we are meant will write code to raycast mathematical primitives based on a scene input file
+into a pixel buffer. We will then write the pixel buffer to a PPM formatted file using the code
+you wrote in Project 1 (P6 format).
+*/
+
+
+
 //declaration list of variables
 //From the JSON file
 typedef struct{
@@ -37,7 +45,8 @@ static inline double sqr(double n){
     return n*n;
 }
 
-//Sphere intersection
+//sphereIntersection function
+//Source: http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter1.htm
 double sphereIntersection(double *Ro, double *Rd, double *position, double radius){
     double a,b,c;
     //sphere intersection equation provided by Dr. Palmer
@@ -80,6 +89,8 @@ static inline double normalize(double *v){
 
 }
 
+//planeIntersection function
+//Source: http://www.siggraph.org/education/materials/HyperGraph/raytrace/rayplane_intersection.htm
 double planeIntersection(double *Ro, double *Rd, double *position, double *normal){
     normalize(normal);
 
@@ -97,6 +108,8 @@ double planeIntersection(double *Ro, double *Rd, double *position, double *norma
         return t;
 }
 
+//rayCast function
+//implements pseudocode provided by Palmer
 void rayCast(double N, double M){
     //instantiating variables
     int index;
@@ -110,74 +123,72 @@ void rayCast(double N, double M){
     double pixelWidth = w/N;
 
     for(i=0; i<M; i+=1){
-       for(j=0; j<N; j+=1){
-           double p_y = (c[1] - h/2.0 + pixelHeight*(i + 0.5));
-           double p_x = (c[0] - w/2.0 + pixelWidth*(j + 0.5));
-           double p_z = 1; //
-           double Rd[3] = {p_x, p_y, p_z};
-           //Normalization of Rd
-           normalize(Rd);
+        for(j=0; j<N; j+=1){
+            double p_y = (c[1] - h/2.0 + pixelHeight*(i + 0.5));
+            double p_x = (c[0] - w/2.0 + pixelWidth*(j + 0.5));
+            double p_z = 1; //z-coordinate view plane
+            double Rd[3] = {p_x, p_y, p_z};
+            //Normalization of Rd
+            normalize(Rd);
 
 
-           double closestT = 999999; //closest point to the camera
-           double *closestC; //what ever colro closestT is, that is colorT
-           for(index=0; index<=lastIndex; index+=sizeof(Scene)){
-               double t = 0;
-               //Shoot function from the pseudocode provided by Palmer
-               if(scene[index].type == 's'){
-                       t = sphereIntersection(Ro, Rd, scene[index].position, scene[index].radius);
-               }
+            double closestT = 999999; //closest point to the camera
+            double *closestC; //what ever colro closestT is, that is colorT
+            for(index=0; index<=lastIndex; index+=sizeof(Scene)){
+                double t = 0;
                 //Shoot function from the pseudocode provided by Palmer
-               if(scene[index].type == 'p'){
-                       t = planeIntersection(Ro, Rd, scene[index].position, scene[index].normal);
-               }
-               if(t > 0 && t < closestT){
-                   closestT = t;
+                if(scene[index].type == 's'){
+                        t = sphereIntersection(Ro, Rd, scene[index].position, scene[index].radius);
+                }
+                 //Shoot function from the pseudocode provided by Palmer
+                if(scene[index].type == 'p'){
+                        t = planeIntersection(Ro, Rd, scene[index].position, scene[index].normal);
+                }
+                if(t > 0 && t < closestT){
+                    closestT = t; //setting closest point to t
+                    closestC = scene[index].color; //setting closest c to the color
+                }
+                if(closestT > 0 && closestT != 999999){
 
-                   closestC = scene[index].color;
-               }
-               if(closestT > 0 && closestT != 999999){
+                    double r = closestC[0] * 255;
+                    double g = closestC[1] * 255;
+                    double b = closestC[2] * 255;
+                    //Type casting
+                    int int_r = (int) r;
+                    int int_g = (int) g;
+                    int int_b = (int) b;
 
-                   double r = closestC[0] * 255;
-                   double g = closestC[1] * 255;
-                   double b = closestC[2] * 255;
-                   //Type casting
-                   int int_r = (int) r;
-                   int int_g = (int) g;
-                   int int_b = (int) b;
+                    int position = (int)((M - i - 1)*N + j);
 
-                   int position = (int)((M - i - 1)*N + j);
+                    PixelBuffer[position].r = int_r;
+                    PixelBuffer[position].g = int_g;
+                    PixelBuffer[position].b = int_b;
 
-                   PixelBuffer[position].r = int_r;
-                   PixelBuffer[position].g = int_g;
-                   PixelBuffer[position].b = int_b;
+                    /*First attempt*/
+                    /*for(index = 0; index <= scene.object[index]; index += sizeof(Object)){
+				double t = 0;
+				//Shoot function
+				if(scene.object[index].type = "sphere"){
+					t = sphereIntersection(Ro, Rd, scene[index].position, scene[index].radius);
+				}
+				//Shoot function
+				if(scene.object[index].type = "plane"){
+					t = planeIntersection(Ro, Rd, scene[index].position, scene[index].radius);
 
-                   /*First attempt*/
-                   /*for(index = 0; index <= scene.object[index]; index += sizeof(Object)){
-       double t = 0;
-       //Shoot function
-       if(scene.object[index].type = "sphere"){
-         t = sphereIntersection(Ro, Rd, scene[index].position, scene[index].radius);
-       }
-       //Shoot function
-       if(scene.object[index].type = "plane"){
-         t = planeIntersection(Ro, Rd, scene[index].position, scene[index].radius);
+				}
+				 if(t > 0 && t < closestT){
+                    closestT = t;
 
-       }
-        if(t > 0 && t < closestT){
-                   closestT = t;
+                    colorT = scene[index].color;
 
-                   colorT = scene[index].color;
-
-               }*/
+                }*/
 
 
-       }
-   }
-       }
+        }
+    }
+        }
 }
-
-
+}
 
 
 // next_c() wraps the getc() function and provides error checking and line
@@ -275,6 +286,11 @@ double* next_vector(FILE* json) {
   return v;
 }
 
+
+//read_scene function
+//Read's in our json file
+//populates our object array
+//saves data for future usage
 void read_scene(char* filename) {
     int index = -1;
     int c;
@@ -455,6 +471,10 @@ void read_scene(char* filename) {
     }
   }
 }
+/*This was to testing to see if I've properly acquired
+the contents within the JSON by populating my array of objects.
+I then printed it out to the terminal.
+*/
 
 /*
 void printScene(){
@@ -477,15 +497,49 @@ void printScene(){
 }*/
 
 
+//Customized write function from project 1
+int write(int w, int h, FILE* outputFile){
+    int i;
 
+    FILE *fp;
 
+    char BufferSize[2] = {'P', '6'};
+    int height = h;
+    int width = w;
+
+    fp = fopen(outputFile, "wb");
+    fwrite(BufferSize, sizeof(BufferSize), sizeof(BufferSize)-1, fp);
+
+    fprintf(fp,"\n%d %d", width, height);
+    fprintf(fp,"\n%d", 255);
+    fprintf(fp,"\n");
+            for (i=0; i < width*height; i++){
+                fwrite(&PixelBuffer[i].r, 1, 1, fp);
+                fwrite(&PixelBuffer[i].g, 1, 1, fp);
+                fwrite(&PixelBuffer[i].b, 1, 1, fp);
+            }
+    return 0;
+}
+
+//Main function
 int main(int argc, char** argv) {
+
+    //memory allocation
+    scene = malloc(sizeof(Scene)*128);
 
     //ascii to integer.
     double N = (double)atoi(argv[1]);
     double M = (double)atoi(argv[2]);
+    //referencing the type for memory allocation
+    PixelBuffer = (Scene*)malloc(sizeof(Scene)* N * M);
+    //treating PixelBuffer as a series of bytes
+    memset(PixelBuffer, 0, 3*N * M);
 
     read_scene(argv[3]);
     rayCast(N, M);
+
+    //Utilizing our command line arguments
+    write(N, M, argv[4]);
+
     return 0;
 }
