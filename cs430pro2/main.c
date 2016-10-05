@@ -3,6 +3,8 @@
 #include <string.h>
 #include <math.h>
 
+
+
 typedef struct{
     unsigned char r,g,b;
 
@@ -25,7 +27,9 @@ typedef struct{
 }Scene;
 
 Scene scene;
+
 Pixel *PixelBuffer;
+lastIndex = 0;
 
 
 int line = 1;
@@ -89,6 +93,7 @@ double planeIntersection(double *Ro, double *Rd, double *position, double *norma
     if(denominator == 0)
         return -1;
     //plane intersection equation provided by Dr. Palmer
+    //t = -(AX0 + BY0 + CZ0 + D) / (AXd + BYd + CZd)
     double t = -(normal[0]*Ro[0] + normal[1]*Ro[1] + normal[2]*Ro[2] + d)/(normal[1]*Rd[0] + normal[1]*Rd[1] + normal[2]*Rd[2]);
     //else
         return t;
@@ -97,9 +102,81 @@ double planeIntersection(double *Ro, double *Rd, double *position, double *norma
 
 }
 
-void rayCast(double M, double N){
-    double *Ro = {0,0,0};
-    double *Rd = {0,0,0};
+void rayCast(double N, double M){
+	int index;
+	int x = 0;
+	int y = 0;
+
+	double Ro[3] = {0,0,0};
+
+   	//M = width in pixels
+	//N = height in pixels
+	double c[3] = {0,0,0};
+	double w = scene.width;
+	double h = scene.height;
+	double pixelHeight = h/M;
+	double pixelWidth = w/N;
+
+	for(int y = 0; y < M; y += 1){
+		for(int x = 0; x < N; x += 1){
+			double p_y = c[1] - h/2.0 + pixelHeight * (y+0.5);
+			double p_x = c[0] - w/2.0 + pixelWidth * (x+0.5);
+			double p_z = 1; //
+			double Rd[3] = {p_x, p_y, p_x};
+
+			normalize(Rd);
+
+
+            double closestT = INFINITY; //closet point to the camera
+            double *colorT; //what ever color closestT is, that is colorT
+
+
+			for(index = 0; index <= lastIndex; index += sizeof(Object)){
+				double t = 0;
+				//Shoot function
+				if(scene.object[index].type = "sphere"){
+					t = sphereIntersection(Ro, Rd, scene.object[index].position, scene.object[index].radius);
+				}
+				//Shoot function
+				if(scene.object[index].type = "plane"){
+					t = planeIntersection(Ro, Rd, scene.object[index].position, scene.object[index].normal);
+
+				}
+				 if(t > 0 && t < closestT){
+                    closestT = t;
+
+                    colorT = scene.object[index].color;
+
+                }
+
+                if(closestT > 0 && closestT != INFINITY){
+
+                	int  BufferPosition = (int)((M - y -1)*N +x);
+
+                    double r = colorT[0] * 255;
+                    double g = colorT[1] * 255;
+                    double b = colorT[2] * 255;
+
+                    int R = (int)r;
+                    int G = (int)g;
+                    int B = (int)b;
+
+                    PixelBuffer[BufferPosition].r = R;
+                    PixelBuffer[BufferPosition].g = G;
+                    PixelBuffer[BufferPosition].b = B;
+
+                }
+
+
+		}
+
+
+		}
+	}
+
+
+
+
 
 
 
@@ -300,6 +377,7 @@ void read_scene(char* filename) {
 	    //char* value = next_string(json);
 	  }
 	  skip_ws(json);
+
 	} else {
 	  fprintf(stderr, "Error: Unexpected value on line %d\n", line);
 	  exit(1);
@@ -321,28 +399,29 @@ void read_scene(char* filename) {
   }
 }
 
-void printScene(){
+int printScene(){
     int index = 0;
     while(scene.object[index].color != NULL){
 
-    printf("object: %d\n", index);
-    printf("type %s\n", scene.object[index].type);
-    printf("color: %f %f %f\n", scene.object[index].color[0],scene.object[index].color[1],scene.object[index].color[2]);
-    printf("position: %f %f %f\n", scene.object[index].position[0],scene.object[index].position[1],scene.object[index].position[2]);
+    //printf("object: %d\n", index);
+    //printf("type %s\n", scene.object[index].type);
+   // printf("color: %f %f %f\n", scene.object[index].color[0],scene.object[index].color[1],scene.object[index].color[2]);
+   // printf("position: %f %f %f\n", scene.object[index].position[0],scene.object[index].position[1],scene.object[index].position[2]);
     if(scene.object[index].normal != NULL){
-    printf("normal: %f %f %f\n", scene.object[index].normal[0],scene.object[index].normal[1],scene.object[index].normal[2]);
+    //printf("normal: %f %f %f\n", scene.object[index].normal[0],scene.object[index].normal[1],scene.object[index].normal[2]);
     }
     else{
-    printf("radius: %f\n", scene.object[index].radius);
+    //printf("radius: %f\n", scene.object[index].radius);
     }
     index++;
     }
-
+return index;
 }
 
 int main(int c, char** argv) {
   read_scene("objects.json");
-  printScene();
+  //printScene();
+  lastIndex = printScene();
   return 0;
 }
 
