@@ -4,34 +4,33 @@
 #include <math.h>
 
 
+//John E. Sadie
+//CS430 Computer Graphics
+//Project 2 - Basic Raycaster
 
+//declaration list of variables
+//From the JSON file
 typedef struct{
-    unsigned char r,g,b;
-
-
-}Pixel;
-
-typedef struct{
-    char *type;
-    double *position;
-    double *color;
-    double radius;
-    double *normal;
-
-}Object;
-
-typedef struct{
-    double width, height;
-    Object object[128];
+        char type;
+        double *color;
+        double *position;
+        double *normal;
+        double radius;
+        double width, height;
+        unsigned char r,g,b;
 
 }Scene;
 
-Scene scene;
-
-Pixel *PixelBuffer;
-
-
 int line = 1;
+int cameraOne;
+int incrementObject;
+int lastIndex = 0;
+
+Scene r, g, b;
+Scene camera;
+Scene *scene;
+Scene *PixelBuffer;
+
 
 //creating a square operator
 static inline double sqr(double n){
@@ -96,88 +95,19 @@ double planeIntersection(double *Ro, double *Rd, double *position, double *norma
     double t = -(normal[0]*Ro[0] + normal[1]*Ro[1] + normal[2]*Ro[2] + d)/(normal[1]*Rd[0] + normal[1]*Rd[1] + normal[2]*Rd[2]);
     //else
         return t;
-
-
-
 }
 
 void rayCast(double N, double M){
-	int index;
-	int x = 0;
-	int y = 0;
-
-	double Ro[3] = {0,0,0}
-
-   	//M = width in pixels
-	//N = height in pixels
-	double c[3] = {0,0,0};
-	double w = scene.width;
-	double h = scene.height;
-	double pixelHeight = h/M;
-	double pixelWidth = w/N;
-
-	for(int y = 0; y < M; y += 1){
-		for(int x = 0; x < N; x += 1){
-			p_y = c[1] - h/2.0 + pixelHeight * (y+0.5);
-			p_x = c[0] - w/2.0 + pixelWidth * (x+0.5);
-			p_z = 1; //
-			double Rd[3] = {p_x, p_y, p_x};
-
-			normalize(Rd);
-
-
-            double closestT = INFINITY; //closet point to the camera
-            double *colorT; //what ever color closestT is, that is colorT
-
-			for(index = 0; index <= scene.object[index]; index += sizeof(Object)){
-				double t = 0;
-				//Shoot function
-				if(scene.object[index].type = "sphere"){
-					t = sphereIntersection(Ro, Rd, scene[index].position, scene[index].radius);
-				}
-				//Shoot function
-				if(scene.object[index].type = "plane"){
-					t = planeIntersection(Ro, Rd, scene[index].position, scene[index].radius);
-
-				}
-				 if(t > 0 && t < closestT){
-                    closestT = t;
-
-                    colorT = scene[index].color;
-
-                }
-
-                if(closestT > 0 && closestT != INFINITY){
-
-                	int  BufferPosition = (int)((M - y -1)*N +x);
-
-                    int R = (int)r;
-                    int G = (int)g;
-                    int B = (int)b;
-
-                    double r = colorT[0] * 255;
-                    double g = colorT[1] * 255;
-                    double b = colorT[2] * 255;
-
-
-                    PixelBuffer[BufferPosition].r = R;
-                    PixelBuffer[BufferPosition].g = G;
-                    PixelBuffer[BufferPosition].b = B;
-
-                }
-
-
-		}
-
-
-		}
-	}
-
-
-
-
-
-
+    //instantiating variables
+    int index;
+    int i = 0;
+    int j = 0;
+    double Ro[3] = {0.0,0};
+    double c[3] = {0, 0, 0};
+    double w = camera.width;
+    double h = camera.height;
+    double pixelHeight = h/M;
+    double pixelWidth = w/N;
 
 
 }
@@ -255,7 +185,7 @@ char* next_string(FILE* json) {
 
 double next_number(FILE* json) {
   double value;
-  fscanf(json, "%lf", &value);
+  fscanf(json, "%lf", &value); //altered from %f to read doubles
   // Error check this..
   return value;
 }
@@ -278,13 +208,12 @@ double* next_vector(FILE* json) {
   return v;
 }
 
-
 void read_scene(char* filename) {
-  int index = -1;
+    int index = -1;
+    int c;
+    char Object;
 
-
-  int c;
-  FILE* json = fopen(filename, "r");
+    FILE* json = fopen(filename, "r");
 
   if (json == NULL) {
     fprintf(stderr, "Error: Could not open file \"%s\"\n", filename);
@@ -301,9 +230,6 @@ void read_scene(char* filename) {
   // Find the objects
 
   while (1) {
-
-    //
-    index++;
     c = fgetc(json);
     if (c == ']') {
       fprintf(stderr, "Error: This is the worst scene file EVER.\n");
@@ -314,49 +240,72 @@ void read_scene(char* filename) {
       skip_ws(json);
 
       // Parse the object
-      char* key = next_string(json);
-      if (strcmp(key, "type") != 0) {
-	fprintf(stderr, "Error: Expected \"type\" key on line number %d.\n", line);
-	exit(1);
+    char* key = next_string(json);
+    if (strcmp(key, "type") != 0) {
+        fprintf(stderr, "Error: Expected \"type\" key on line number %d.\n", line);
+        exit(1);
       }
-
-      skip_ws(json);
-
-      expect_c(json, ':');
-
-      skip_ws(json);
-
-      char* value = next_string(json);
-
-
-
-      if (strcmp(value, "camera") == 0) {
-            //assuming camera is not first in the array
-          index--;
-      } else if (strcmp(value, "sphere") == 0) {
-          scene.object[index].type = "sphere";
-      } else if (strcmp(value, "plane") == 0) {
-          scene.object[index].type = "plane";
-      } else {
-	fprintf(stderr, "Error: Unknown type, \"%s\", on line number %d.\n", value, line);
-	exit(1);
+    skip_ws(json);
+    expect_c(json, ':');
+    skip_ws(json);
+    char* value = next_string(json);
+    //Accounting for only one camera
+    if (strcmp(value, "camera") == 0) {
+        cameraOne += 1;
+        Object = 'c';
       }
-
-      skip_ws(json);
-
-      while (1) {
-	// , }
-	c = next_c(json);
-	if (c == '}') {
-	  // stop parsing this object
-	  break;
-	} else if (c == ',') {
-	  // read another field
-	  skip_ws(json);
-	  char* key = next_string(json);
-	  skip_ws(json);
-	  expect_c(json, ':');
-	  skip_ws(json);
+      //What object are we looking at
+      //String compare of value and sphere
+    else if (strcmp(value, "sphere") == 0) {
+        incrementObject += 1;
+        Object = 's';
+        scene[lastIndex].type = 's';
+      }
+       //String compare of value and plane
+    else if (strcmp(value, "plane") == 0) {
+        incrementObject += 1;
+        Object = 'p';
+        scene[lastIndex].type = 'p';
+      }
+    else {
+        fprintf(stderr, "Error: Unknown type, \"%s\", on line number %d.\n", value, line);
+        exit(1);
+      }
+    skip_ws(json);
+    //Keeping track of variables
+    //to be incremented
+    int incrementCamera = 0;
+	int incrementObject = 0;
+    while (1) {
+        c = next_c(json);
+        if (c == '}') {
+            // stop parsing this object
+            break;
+        }
+        else if (c == ',') {
+            // read another field
+            skip_ws(json);
+            char* key = next_string(json);
+            skip_ws(json);
+            expect_c(json, ':');
+            skip_ws(json);
+             //*populating object array with our json contents*//
+            if ((strcmp(key, "width") == 0) || (strcmp(key, "height") == 0) || (strcmp(key, "radius") == 0)) {
+                double value = next_number(json);
+            if(strcmp(key, "width") == 0){
+                camera.width = value;
+                incrementCamera += 1;
+            }
+            if(strcmp(key, "height") == 0){
+                camera.height = value;
+                incrementCamera += 1;
+            }
+            if((strcmp(key, "radius") == 0)){
+                scene[lastIndex].radius = value;
+                incrementObject += 1;
+            }
+        }
+        /*
         //populating object array with our json contents
         if (strcmp(key, "width") == 0) {
             scene.width = next_number(json);
@@ -370,33 +319,77 @@ void read_scene(char* filename) {
             scene.object[index].position = next_vector(json);
         } else if (strcmp(key, "normal") == 0) {
             scene.object[index].normal = next_vector(json);
-        } else {
-            fprintf(stderr, "Error: Unknown property, \"%s\", on line %d.\n",
-		    key, line);
-	    //char* value = next_string(json);
-	  }
-	  skip_ws(json);
-	} else {
-	  fprintf(stderr, "Error: Unexpected value on line %d\n", line);
-	  exit(1);
-	}
+        }
+        */
+            else if ((strcmp(key, "color") == 0) || (strcmp(key, "position") == 0) || (strcmp(key, "normal") == 0)) {
+                double* value = next_vector(json);
+            if((strcmp(key, "color") == 0)){
+                scene[lastIndex].color = malloc(3*sizeof(double));
+                scene[lastIndex].color = value;
+            if(scene[lastIndex].color[0] > 1 || scene[lastIndex].color[3] > 1 || scene[lastIndex].color[2] > 1){
+                fprintf(stderr, "ERROR: Some color value is greater than 1.\n");
+                exit(1);
+            }
+            //Keep track objects
+            incrementObject += 1;
+            }
+            if((strcmp(key, "position") == 0)){
+                scene[lastIndex].position = malloc(3*sizeof(double));
+                scene[lastIndex].position = value;
+                incrementObject += 1;
+            }
+            if((strcmp(key, "normal") == 0)){
+                scene[lastIndex].normal = malloc(3*sizeof(double));
+                scene[lastIndex].normal = value;
+                incrementObject += 1;
+                }
+            }
+            else{
+                fprintf(stderr, "Error: Unknown property, \"%s\", on line %d.\n",
+                key, line);
+            }
+            skip_ws(json);
+        }
+        else {
+            fprintf(stderr, "Error: Unexpected value on line %d\n", line);
+            exit(1);
+        }
       }
-      skip_ws(json);
-      c = next_c(json);
-      if (c == ',') {
-	// noop
-	skip_ws(json);
-      } else if (c == ']') {
-	fclose(json);
-	return;
-      } else {
-	fprintf(stderr, "Error: Expecting ',' or ']' on line %d.\n", line);
-	exit(1);
+    skip_ws(json);
+    c = next_c(json);
+    if (c == ',') {
+        //Error checking
+        skip_ws(json);
+        if(Object != 'c'){
+            lastIndex += sizeof(Scene);
+            if(incrementObject != 3){
+                fprintf(stderr, "ERROR! Non-correct parameters!");
+                exit(1);
+            }
+            incrementObject = 0;
+        }
+        if(Object == 'c'){
+            if(incrementCamera != 2){
+            fprintf(stderr, "ERROR! Non-correct parameters!");
+            exit(1);
+            }
+        incrementCamera = 0;
+        }
+    }
+    else if (c == ']') {
+        //Iterated through all objects
+        fclose(json);
+        return;
+    }
+    else {
+        fprintf(stderr, "Error: Expecting ',' or ']' on line %d.\n", line);
+        exit(1);
       }
     }
   }
 }
 
+/*
 void printScene(){
     int index = 0;
     while(scene.object[index].color != NULL){
@@ -414,11 +407,13 @@ void printScene(){
     index++;
     }
 
-}
+}*/
 
-int main(int c, char** argv) {
-  read_scene("objects.json");
-  printScene();
-  return 0;
-}
 
+
+
+int main(int argc, char** argv) {
+
+
+    return 0;
+}
