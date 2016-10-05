@@ -106,7 +106,7 @@ void rayCast(double N, double M){
 	int x = 0;
 	int y = 0;
 
-    double Ro[3] = {0,0,0};
+	double Ro[3] = {0,0,0}
 
    	//M = width in pixels
 	//N = height in pixels
@@ -116,7 +116,7 @@ void rayCast(double N, double M){
 	double pixelHeight = h/M;
 	double pixelWidth = w/N;
 
-    for(int y = 0; y < M; y += 1){
+	for(int y = 0; y < M; y += 1){
 		for(int x = 0; x < N; x += 1){
 			p_y = c[1] - h/2.0 + pixelHeight * (y+0.5);
 			p_x = c[0] - w/2.0 + pixelWidth * (x+0.5);
@@ -124,10 +124,63 @@ void rayCast(double N, double M){
 			double Rd[3] = {p_x, p_y, p_x};
 
 			normalize(Rd);
+
+
+            double closestT = INFINITY; //closet point to the camera
+            double *colorT; //what ever color closestT is, that is colorT
+
+			for(index = 0; index <= scene.object[index]; index += sizeof(Object)){
+				double t = 0;
+				//Shoot function
+				if(scene.object[index].type = "sphere"){
+					t = sphereIntersection(Ro, Rd, scene[index].position, scene[index].radius);
+				}
+				//Shoot function
+				if(scene.object[index].type = "plane"){
+					t = planeIntersection(Ro, Rd, scene[index].position, scene[index].radius);
+
+				}
+				 if(t > 0 && t < closestT){
+                    closestT = t;
+
+                    colorT = scene[index].color;
+
+                }
+
+                if(closestT > 0 && closestT != INFINITY){
+
+                	int  BufferPosition = (int)((M - y -1)*N +x);
+
+                    int R = (int)r;
+                    int G = (int)g;
+                    int B = (int)b;
+
+                    double r = colorT[0] * 255;
+                    double g = colorT[1] * 255;
+                    double b = colorT[2] * 255;
+
+
+                    PixelBuffer[BufferPosition].r = R;
+                    PixelBuffer[BufferPosition].g = G;
+                    PixelBuffer[BufferPosition].b = B;
+
+                }
+
+
 		}
 
-    }
-    }
+
+		}
+	}
+
+
+
+
+
+
+
+
+}
 
 
 // next_c() wraps the getc() function and provides error checking and line
