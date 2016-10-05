@@ -106,7 +106,7 @@ void rayCast(double N, double M){
 	int x = 0;
 	int y = 0;
 
-    double Ro[3] = {0,0,0}
+    double Ro[3] = {0,0,0};
 
    	//M = width in pixels
 	//N = height in pixels
@@ -116,7 +116,18 @@ void rayCast(double N, double M){
 	double pixelHeight = h/M;
 	double pixelWidth = w/N;
 
-}
+    for(int y = 0; y < M; y += 1){
+		for(int x = 0; x < N; x += 1){
+			p_y = c[1] - h/2.0 + pixelHeight * (y+0.5);
+			p_x = c[0] - w/2.0 + pixelWidth * (x+0.5);
+			p_z = 1; //
+			double Rd[3] = {p_x, p_y, p_x};
+
+			normalize(Rd);
+		}
+
+    }
+    }
 
 
 // next_c() wraps the getc() function and provides error checking and line
