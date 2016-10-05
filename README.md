@@ -5,7 +5,7 @@ CS430 Computer Graphics
 Project 2 - Basic Raycaster
 
 
-In this project we are meant will write code to raycast mathematical primitives based on a scene input file
+In this project we are meant to write code to raycast mathematical primitives based on a scene input file
 into a pixel buffer. We will then write the pixel buffer to a PPM formatted file using the code
 you wrote in Project 1 (P6 format).
 
